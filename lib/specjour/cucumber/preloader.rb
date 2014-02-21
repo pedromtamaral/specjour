@@ -16,6 +16,9 @@ module Specjour
           runtime.send :fire_after_configuration_hook
           Cucumber.runtime = runtime
         end
+      rescue StandardError => e
+        output.puts "#{e.class} - #{e.message} - #{e.backtrace}"
+        raise e
       end
     end
   end

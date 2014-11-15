@@ -61,7 +61,7 @@ module Specjour::Cucumber
       prepare_steps(:failed)
       prepare_steps(:undefined)
 
-      @io.send_message(:cucumber_summary=, to_hash)
+      @io.send_message(:cucumber_summary=, [step_mother.scenarios[0].file_colon_line, to_hash])
     end
 
     OUTCOMES = [:failed, :skipped, :undefined, :pending, :passed]

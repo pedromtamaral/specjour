@@ -5,7 +5,7 @@ module Specjour
     RANDOM_PORT = 0
 
     attr_reader :port, :clients
-    attr_accessor :tests_to_run, :example_size, :examples_complete, :profiler
+    attr_accessor :tests_to_run, :runs, :summaries, :example_size, :examples_complete, :profiler
 
     def initialize
       @host = "0.0.0.0"
@@ -14,6 +14,8 @@ module Specjour
       @profiler = {}
       @clients = {}
       @tests_to_run = []
+      @runs = {}
+      @summaries = {}
       @example_size = 0
       self.examples_complete = 0
     end
@@ -62,27 +64,49 @@ module Specjour
     end
 
     def ready(client)
-      client.print tests_to_run.shift
+      test = tests_to_run.shift
+      client.print(test)
       client.flush
     end
 
-    def done(client)
-      self.examples_complete += 1
+    def done(client, success, test)
+      runs[test] -= 1
+      if !success && runs[test] > 0
+        tests_to_run.unshift(test)
+      else
+        self.examples_complete += 1
+        if test =~ /\.feature(:\d+)?$/
+          cucumber_report.add(summaries[test])
+        else
+          rspec_report.add(summaries[test])
+        end
+      end
     end
 
     def tests=(client, tests)
       if tests_to_run.empty?
         self.tests_to_run = run_order(tests)
+        store_runs
         self.example_size = tests_to_run.size
       end
     end
 
-    def rspec_summary=(client, summary)
-      rspec_report.add(summary)
+    def store_runs
+      tests_to_run.each do |test|
+        runs[test] = 3
+      end
     end
 
-    def cucumber_summary=(client, summary)
-      cucumber_report.add(summary)
+    def rspec_summary=(client, summary)
+      unless summary[0].nil?
+        test = summary[0][:location]
+        summaries[test] = summary
+      end
+    end
+
+    def cucumber_summary=(client, args)
+      test, summary = *args
+      summaries[test] = summary
     end
 
     def add_to_profiler(client, args)
@@ -138,7 +162,7 @@ module Specjour
     end
 
     def missing_tests?
-      tests_to_run.any? || examples_complete != example_size
+      tests_to_run.any? || examples_complete < example_size
     end
 
     def print_missing_tests

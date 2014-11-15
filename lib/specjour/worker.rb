@@ -28,11 +28,12 @@ module Specjour
       run_times = Hash.new(0)
 
       while test = connection.next_test
+        result = nil
         print_status(test)
-        time = Benchmark.realtime { run_test test }
+        time = Benchmark.realtime { result = run_test(test) }
         profile(test, time)
         run_times[test_type(test)] += time
-        connection.send_message(:done)
+        connection.send_message(:done, result == 0, test)
       end
 
       send_run_times(run_times)

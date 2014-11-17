@@ -75,6 +75,7 @@ module Specjour
         tests_to_run.unshift(test)
       else
         self.examples_complete += 1
+        puts "\nFlaky: #{test} failed before succeeding\n" if success && runs[test] < 2
         if test =~ /\.feature(:\d+)?$/
           cucumber_report.add(summaries[test])
         else

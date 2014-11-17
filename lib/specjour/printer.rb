@@ -99,8 +99,9 @@ module Specjour
 
     def rspec_summary=(client, summary)
       unless summary[0].nil?
-        test = summary[0][:location]
-        summaries[test] = summary
+        # place it in both locations, as for shared examples, parent location is the way to go.
+        summaries[summary[0][:location]] = summary
+        summaries[summary[0][:parent_location]] = summary
       end
     end
 

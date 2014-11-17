@@ -10,7 +10,8 @@ module Specjour::RSpec
           :file_path        => metadata[:file_path],
           :full_description => metadata[:full_description],
           :line_number      => metadata[:line_number],
-          :location         => metadata[:location]
+          :location         => metadata[:location],
+          :parent_location  => metadata[:example_group][:location]
         }
       end
     end

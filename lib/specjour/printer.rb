@@ -102,7 +102,7 @@ module Specjour
       unless summary[0].nil?
         # place it in both locations, as for shared examples, parent location is the way to go.
         summaries[summary[0][:location]] = summary
-        summaries[summary[0][:parent_location]] = summary
+        summaries[summary[0][:parent_location]] = summary unless summary[0][:parent_location].nil?
       end
     end
 

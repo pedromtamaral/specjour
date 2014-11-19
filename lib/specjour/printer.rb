@@ -69,17 +69,24 @@ module Specjour
       client.flush
     end
 
-    def done(client, success, test)
+    def done(client, test)
       runs[test] -= 1
-      if !success && runs[test] > 0
+      summary = summaries[test]
+      if test =~ /\.feature(:\d+)?$/
+        failed = summary[:scenarios][:failed] > 0
+      else
+        failed = summary.any? { |example| example[:execution_result][:status] == "failed" }
+      end
+
+      if failed && runs[test] > 0
         tests_to_run.unshift(test)
       else
         self.examples_complete += 1
-        puts "\nFlaky: #{test} failed before succeeding\n" if success && runs[test] < 2
+        puts "\nFlaky: #{test} failed before succeeding\n" if !failed && runs[test] < 2
         if test =~ /\.feature(:\d+)?$/
-          cucumber_report.add(summaries[test])
+          cucumber_report.add(summary)
         else
-          rspec_report.add(summaries[test])
+          rspec_report.add(summary)
         end
       end
     end

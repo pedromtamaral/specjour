@@ -39,14 +39,25 @@ module Specjour
       Kernel.at_exit { stop }
       write_config
       Dir.chdir(project_path) do
-        Kernel.system *command
+        # Kernel.system *command
+        # if "rsyncd.pid" file exists from and old process (still running or not) rsync fails to start
+        # rsync command gives zero exit status independently of success or not
+
+        output = `#{command.join(" ")} 2>&1`
+        if output =~ /failed to create pid file/
+          raise Error, "failed to start rsync daemon: #{output}"
+        end
         sleep 0.1
       end
     end
 
     def stop
       if pid
-        Process.kill("KILL", pid)
+        begin
+          Process.kill("KILL", pid)
+        rescue Errno::ESRCH
+          # the process may already have been terminated and the pid file not deleted
+        end
         FileUtils.rm(pid_file)
       end
     end

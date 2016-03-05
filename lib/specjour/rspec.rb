@@ -5,7 +5,11 @@ module Specjour
 
     require 'specjour/rspec/marshalable_exception'
     require 'specjour/rspec/preloader'
-    require 'specjour/rspec/distributed_formatter'
+    if Specjour.rspec2?
+      require 'specjour/rspec/distributed_formatter_rspec2'
+    else
+      require 'specjour/rspec/distributed_formatter'
+    end
     require 'specjour/rspec/final_report'
     require 'specjour/rspec/runner'
     require 'specjour/rspec/shared_example_group_ext'

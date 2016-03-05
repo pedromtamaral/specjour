@@ -75,9 +75,8 @@ module Specjour
       if test =~ /\.feature(:\d+)?$/
         failed = summary[:scenarios][:failed] > 0
       else
-        failed = summary.any? { |example| example[:execution_result][:status] == "failed" }
+        failed = (summary || []).any? { |example| example[:execution_result][:status].to_s == "failed" }
       end
-
       if failed && runs[test] > 0
         tests_to_run.insert(rand(tests_to_run.length + 1), test)
       else
@@ -105,11 +104,11 @@ module Specjour
       end
     end
 
+    # this is getting the results (array), including a last hash with a key: :duration.
     def rspec_summary=(client, summary)
-      unless summary[0].nil?
-        # place it in both locations, as for shared examples, parent location is the way to go.
-        summaries[summary[0][:location]] = summary
-        summaries[summary[0][:parent_location]] = summary unless summary[0][:parent_location].nil?
+      return if summary.is_a?(Hash)
+      summary.each do |e|
+        summaries[e[:location]] = [e]
       end
     end
 

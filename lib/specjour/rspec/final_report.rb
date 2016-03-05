@@ -6,7 +6,6 @@ module Specjour::RSpec
     def initialize
       @examples = []
       @duration = 0.0
-      ::RSpec.configuration.color_enabled = true
       ::RSpec.configuration.output_stream = $stdout
     end
 
@@ -23,51 +22,52 @@ module Specjour::RSpec
     end
 
     def exit_status
-      formatter.failed_examples.empty?
+      failed_examples.empty?
     end
 
     def metadata_for_examples(metadata_collection)
-      examples.concat(
-        metadata_collection.map do |partial_metadata|
-          example = ::RSpec::Core::Example.allocate
-          example.instance_variable_set(:@example_group_class,
-            OpenStruct.new(:metadata => {}, :ancestors => [], :parent_groups => [])
-          )
-          metadata = ::RSpec::Core::Metadata.new
-          metadata.merge! partial_metadata
-          example.instance_variable_set(:@metadata, metadata)
-          example
+      new_examples = begin
+        (metadata_collection || []).map do |partial_metadata|
+          ::RSpec::Core::Example.allocate.tap do |example|
+            if Specjour.rspec2?
+              struct = OpenStruct.new(:metadata => {}, :ancestors => [], :parent_groups => [])
+              example.instance_variable_set(:@example_group_class, struct)
+              metadata = ::RSpec::Core::Metadata.new
+              metadata.merge! partial_metadata
+            else
+              metadata = ::RSpec::Core::Metadata.build_hash_from([partial_metadata])
+            end
+            example.instance_variable_set(:@metadata, metadata)
+          end
         end
-      )
+      end
+
+      examples.concat(new_examples)
     end
 
     def pending_examples
-      examples.select {|e| e.execution_result[:status] == 'pending'}
+      examples.select {|e| e.execution_result[:status].to_s == 'pending'}
     end
 
     def failed_examples
-      examples.select {|e| e.execution_result[:status] == 'failed'}
-    end
-
-    def formatter
-      @formatter ||= new_progress_formatter
+      examples.select {|e| e.execution_result[:status].to_s == 'failed'}
     end
 
     def summarize
-      if examples.size > 0
-        formatter.start_dump
-        formatter.dump_pending
-        formatter.dump_failures
-        formatter.dump_summary(duration, examples.size, failed_examples.size, pending_examples.size)
+      # puts "\nFinished in #{duration} seconds" # TODO: could not get this yet
+      puts "#{examples.size} examples, #{failed_examples.size} failed, #{pending_examples.size} pending.\n"
+      if pending_examples.size > 0
+        puts "\nPending examples:\n"
+        pending_examples.each do |example|
+          puts "rspec #{example.location} # #{example.description}"
+        end
       end
-    end
-
-    protected
-    def new_progress_formatter
-      new_formatter = ::RSpec::Core::Formatters::ProgressFormatter.new($stdout)
-      new_formatter.instance_variable_set(:@failed_examples, failed_examples)
-      new_formatter.instance_variable_set(:@pending_examples, pending_examples)
-      new_formatter
+      if failed_examples.size > 0
+        puts "\nFailed examples:\n"
+        failed_examples.each do |example|
+          puts "rspec #{example.location} # #{example.description}"
+        end
+      end
     end
   end
 end

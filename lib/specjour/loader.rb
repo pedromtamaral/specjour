@@ -110,7 +110,7 @@ module Specjour
           group.metadata[:shared_group_name]
         end
         if shared_group
-          meta = shared_group.metadata[:example_group]
+          meta = e.metadata[:example_group]
         end
         meta[:location]
       end

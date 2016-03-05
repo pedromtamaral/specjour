@@ -1,8 +1,13 @@
 module Specjour::RSpec::Runner
-  ::RSpec.configuration.backtrace_clean_patterns << %r(lib/specjour/)
+  ::RSpec.configuration.backtrace_clean_patterns << %r(lib/specjour/) if Specjour.rspec2?
 
   def self.run(spec, output)
-    args = ['--format=Specjour::RSpec::DistributedFormatter', spec]
+    if Specjour.rspec2?
+      args = ['--format=Specjour::RSpec::DistributedFormatterRspec2', spec]
+    else
+      args = ['--format=Specjour::RSpec::DistributedFormatter', spec]
+    end
+    ::RSpec.configuration.output_stream = output unless Specjour.rspec2?
     ::RSpec::Core::Runner.run args, $stderr, output
   ensure
     ::RSpec.configuration.filter_manager = ::RSpec::Core::FilterManager.new

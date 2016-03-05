@@ -29,13 +29,17 @@ module Specjour
   autoload :Cucumber, 'specjour/cucumber'
   autoload :RSpec, 'specjour/rspec'
 
-  VERSION ||= "0.7.0.6"
+  VERSION ||= "0.7.0.7"
   HOOKS_PATH ||= "./.specjour/hooks.rb"
   PROGRAM_NAME ||= $PROGRAM_NAME # keep a reference of the original program name
 
   GC.copy_on_write_friendly = true if GC.respond_to?(:copy_on_write_friendly=)
 
   class Error < StandardError; end
+
+  def self.rspec2?
+    ::RSpec::Core::Version::STRING.split(".")[0].to_i < 3
+  end
 
   def self.interrupted?
     @interrupted

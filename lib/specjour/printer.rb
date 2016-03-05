@@ -79,7 +79,7 @@ module Specjour
       end
 
       if failed && runs[test] > 0
-        tests_to_run.unshift(test)
+        tests_to_run.insert(rand(tests_to_run.length + 1), test)
       else
         self.examples_complete += 1
         puts "\nFlaky: #{test} failed before succeeding\n" if !failed && runs[test] < 2

@@ -29,7 +29,7 @@ module Specjour
   autoload :Cucumber, 'specjour/cucumber'
   autoload :RSpec, 'specjour/rspec'
 
-  VERSION ||= "0.7.0.7"
+  VERSION ||= "0.7.0.8"
   HOOKS_PATH ||= "./.specjour/hooks.rb"
   PROGRAM_NAME ||= $PROGRAM_NAME # keep a reference of the original program name
 
@@ -38,7 +38,11 @@ module Specjour
   class Error < StandardError; end
 
   def self.rspec2?
-    ::RSpec::Core::Version::STRING.split(".")[0].to_i < 3
+    ::RSpec::Core::Version::STRING.split(".")[0].to_i == 2
+  end
+
+  def self.rspec2_99?
+    rspec2? && ::RSpec::Core::Version::STRING.split(".")[1].to_i == 99
   end
 
   def self.interrupted?

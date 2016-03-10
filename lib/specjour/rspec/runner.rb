@@ -7,7 +7,7 @@ module Specjour::RSpec::Runner
     else
       args = ['--format=Specjour::RSpec::DistributedFormatter', spec]
     end
-    ::RSpec.configuration.output_stream = output unless Specjour.rspec2?
+    ::RSpec.configuration.output_stream = output unless Specjour.rspec2? && !Specjour.rspec2_99?
     ::RSpec::Core::Runner.run args, $stderr, output
   ensure
     ::RSpec.configuration.filter_manager = ::RSpec::Core::FilterManager.new

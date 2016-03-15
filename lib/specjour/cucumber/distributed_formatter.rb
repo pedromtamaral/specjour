@@ -56,12 +56,20 @@ module Specjour::Cucumber
       format_string("#{e.message} (#{e.class})\n#{e.backtrace.join("\n")}".indent(indent), status)
     end
 
+    def scenario_for(scenario_or_outline)
+      if scenario_or_outline.is_a?(Cucumber::Ast::Scenario)
+        scenario_or_outline
+      else
+        scenario_or_outline.scenario_outline
+      end
+    end
+
     def print_summary
       prepare_failures
       prepare_steps(:failed)
       prepare_steps(:undefined)
 
-      @io.send_message(:cucumber_summary=, [@runtime.scenarios[0].file_colon_line, to_hash])
+      @io.send_message(:cucumber_summary=, [scenario_for(@runtime.scenarios[0]).file_colon_line, to_hash])
     end
 
     OUTCOMES = [:failed, :skipped, :undefined, :pending, :passed]
